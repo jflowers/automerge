@@ -2,7 +2,7 @@
 
 set -uo pipefail
 
-UPDATE_METHOD="merge"
+UPDATE_METHOD="rebase"
 DRY_RUN=false
 INCLUDE_DRAFTS=false
 SEARCH_LIMIT="${SEARCH_LIMIT:-1000}"
@@ -19,7 +19,7 @@ that are behind and mergeable.
 Options:
   --dry-run                 Report updates without changing pull requests.
   --include-drafts           Include draft pull requests (skipped by default).
-  --update-method METHOD     Branch update method: merge or rebase (default: merge).
+  --update-method METHOD     Branch update method: merge or rebase (default: rebase).
   -h, --help                Show this help text.
 
 Environment:

@@ -8,7 +8,7 @@ that are behind and mergeable. It must run locally and from GitHub Actions.
 
 ## Defaults
 
-- Update method: `merge`
+- Update method: `rebase`
 - Draft pull requests: skipped
 - Scheduled workflow: every 15 minutes (`*/15 * * * *`)
 - Authentication: `GH_TOKEN`, with `GH_PAT` used by the workflow
@@ -37,6 +37,7 @@ that are behind and mergeable. It must run locally and from GitHub Actions.
   transient `UNKNOWN` retries, per-pull-request error continuation, and dry-run support.
 - Added the 15-minute scheduled/manual workflow and documented PAT setup, permissions,
   local usage, and fork limitations in `README.md`.
+- Changed the default update method to `rebase`; explicit `merge` selection remains supported.
 - Verification passed: `bash -n scripts/update-prs.sh`, help and invalid-option checks,
   Ruby YAML parsing, and a live dry-run with `SEARCH_LIMIT=100`, which found four open
   pull requests, performed zero updates, and returned zero failures. A second dry-run

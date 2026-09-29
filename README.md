@@ -21,11 +21,11 @@ Run a safe local preview:
 GH_TOKEN="$GH_PAT" bash scripts/update-prs.sh --dry-run
 ```
 
-Use the default merge update method, include drafts, or request rebases:
+Use the default rebase update method, include drafts, or request merges:
 
 ```sh
 bash scripts/update-prs.sh --include-drafts
-bash scripts/update-prs.sh --update-method rebase --dry-run
+bash scripts/update-prs.sh --update-method merge --dry-run
 ```
 
 The script can also use the local `gh auth login` session when `GH_TOKEN` is
@@ -35,7 +35,7 @@ and continues processing when an individual repository or pull request fails.
 ## GitHub Actions
 
 The workflow runs every 15 minutes and can also be started manually from the
-Actions tab. Scheduled runs use the `merge` method and do not include drafts.
+Actions tab. Scheduled runs use the `rebase` method and do not include drafts.
 Manual runs provide `merge` or `rebase` and a dry-run input.
 
 Create a repository secret named `GH_PAT`. The token must be able to read and

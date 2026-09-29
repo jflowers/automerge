@@ -8,7 +8,7 @@ on:
       update_method:
         description: Branch update method
         required: true
-        default: merge
+        default: rebase
         type: choice
         options:
           - merge
@@ -33,7 +33,7 @@ jobs:
       - name: Update pull request branches
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
-          UPDATE_METHOD: ${{ inputs.update_method || 'merge' }}
+          UPDATE_METHOD: ${{ inputs.update_method || 'rebase' }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
         run: |
           args=(--update-method "$UPDATE_METHOD")
