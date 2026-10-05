@@ -107,10 +107,11 @@ while IFS=$'\t' read -r number repo is_draft; do
   mergeable=""
   pr_id=""
   head_oid=""
+  base_ref=""
   detail_failed=false
 
   for ((attempt = 1; attempt <= UNKNOWN_RETRIES; attempt++)); do
-    if ! details="$(gh pr view "$number" --repo "$repo" --json id,mergeStateStatus,mergeable,headRefOid 2>&1)"; then
+    if ! details="$(gh pr view "$number" --repo "$repo" --json id,mergeStateStatus,mergeable,headRefOid,baseRefName 2>&1)"; then
       log "skip $repo#$number: unable to read pull request: $details"
       failed=$((failed + 1))
       detail_failed=true
@@ -126,6 +127,7 @@ while IFS=$'\t' read -r number repo is_draft; do
 
     pr_id="$(jq -r '.id // empty' <<<"$details")"
     head_oid="$(jq -r '.headRefOid // empty' <<<"$details")"
+    base_ref="$(jq -r '.baseRefName // empty' <<<"$details")"
     merge_state="$(jq -r '.mergeStateStatus // "UNKNOWN"' <<<"$details")"
     mergeable="$(jq -r '.mergeable // "UNKNOWN"' <<<"$details")"
 
@@ -141,21 +143,33 @@ while IFS=$'\t' read -r number repo is_draft; do
 
   [[ "$detail_failed" == false ]] || continue
 
-  if [[ "$merge_state" == UNKNOWN || "$mergeable" == UNKNOWN ]]; then
+  if [[ "$mergeable" == UNKNOWN ]]; then
     log "skip $repo#$number: merge state remained $merge_state/$mergeable"
     skipped=$((skipped + 1))
     continue
   fi
 
-  if [[ "$merge_state" != BEHIND || "$mergeable" != MERGEABLE ]]; then
-    log "skip $repo#$number: state=$merge_state mergeable=$mergeable"
+  if [[ -z "$pr_id" || -z "$head_oid" || -z "$base_ref" ]]; then
+    log "skip $repo#$number: missing pull request ID, head SHA, or base ref"
+    failed=$((failed + 1))
+    continue
+  fi
+
+  compare_output=""
+  behind_by=0
+  if compare_output="$(gh api "repos/$repo/compare/${base_ref}...${head_oid}" --jq '.behind_by // 0' 2>&1)"; then
+    behind_by="${compare_output:-0}"
+  fi
+
+  if [[ "$behind_by" == "0" ]]; then
+    log "skip $repo#$number: state=$merge_state mergeable=$mergeable (up to date)"
     not_behind=$((not_behind + 1))
     continue
   fi
 
-  if [[ -z "$pr_id" || -z "$head_oid" ]]; then
-    log "skip $repo#$number: missing pull request ID or head SHA"
-    failed=$((failed + 1))
+  if [[ "$mergeable" != MERGEABLE ]]; then
+    log "skip $repo#$number: state=$merge_state mergeable=$mergeable behind_by=$behind_by"
+    not_behind=$((not_behind + 1))
     continue
   fi
 
